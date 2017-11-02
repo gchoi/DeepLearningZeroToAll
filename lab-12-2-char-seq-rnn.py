@@ -3,6 +3,10 @@ import tensorflow as tf
 import numpy as np
 tf.set_random_seed(777)  # reproducibility
 
+## reset the existing graph
+tf.reset_default_graph()
+tf.get_default_graph()
+
 sample = " if you want you"
 idx2char = list(set(sample))  # index -> char
 char2idx = {c: i for i, c in enumerate(idx2char)}  # char -> idex
@@ -23,11 +27,9 @@ X = tf.placeholder(tf.int32, [None, sequence_length])  # X data
 Y = tf.placeholder(tf.int32, [None, sequence_length])  # Y label
 
 x_one_hot = tf.one_hot(X, num_classes)  # one hot: 1 -> 0 1 0 0 0 0 0 0 0 0
-cell = tf.contrib.rnn.BasicLSTMCell(
-    num_units=hidden_size, state_is_tuple=True)
+cell = tf.contrib.rnn.BasicLSTMCell(num_units=hidden_size, state_is_tuple=True)
 initial_state = cell.zero_state(batch_size, tf.float32)
-outputs, _states = tf.nn.dynamic_rnn(
-    cell, x_one_hot, initial_state=initial_state, dtype=tf.float32)
+outputs, _states = tf.nn.dynamic_rnn(cell, x_one_hot, initial_state=initial_state, dtype=tf.float32)
 
 # FC layer
 X_for_fc = tf.reshape(outputs, [-1, hidden_size])
@@ -37,8 +39,7 @@ outputs = tf.contrib.layers.fully_connected(X_for_fc, num_classes, activation_fn
 outputs = tf.reshape(outputs, [batch_size, sequence_length, num_classes])
 
 weights = tf.ones([batch_size, sequence_length])
-sequence_loss = tf.contrib.seq2seq.sequence_loss(
-    logits=outputs, targets=Y, weights=weights)
+sequence_loss = tf.contrib.seq2seq.sequence_loss(logits=outputs, targets=Y, weights=weights)
 loss = tf.reduce_mean(sequence_loss)
 train = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
 
